@@ -82,7 +82,7 @@
         <p class="file-name">{{ message["original_filename"] }}</p>
         {% endif %}
       </div>
-      <div class="actions">
+      <div class="actions message-actions">
         {% if message["kind"] == "text" %}
         <button type="button" class="secondary" data-copy-text="{{ message['content'] }}">复制</button>
         {% endif %}

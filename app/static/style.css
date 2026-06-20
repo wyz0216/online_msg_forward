@@ -118,13 +118,12 @@ small,
 }
 
 .message-item {
-  align-items: stretch;
   background: #fbfdff;
   border: 1px solid #dde7f0;
   border-radius: 9px;
   display: grid;
   gap: 14px;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: 1fr;
   padding: 16px;
 }
 
@@ -204,9 +203,14 @@ small,
 }
 
 .actions {
-  align-content: flex-start;
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+
+.message-actions {
+  border-top: 1px solid #e0e8f0;
+  margin-top: 2px;
+  padding-top: 12px;
 }
 
 .actions button,

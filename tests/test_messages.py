@@ -173,6 +173,16 @@ def test_download_link_uses_button_role(client, settings):
     assert f'href="/messages/{file_id}/download" role="button"' in response.text
 
 
+def test_message_actions_use_bottom_layout_class(client):
+    sign_in(client)
+    client.post("/messages", data={"content": "needs aligned actions", "expires_minutes": ""})
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert 'class="actions message-actions"' in response.text
+
+
 def test_expiration_minutes_must_be_allowed(client):
     sign_in(client)
 
