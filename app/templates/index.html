@@ -57,8 +57,8 @@
         <div class="message-meta-row">
           <span class="badge">{{ message["kind"] }}</span>
           <small>
-            {{ message["created_at"] }}
-            {% if message["expires_at"] %} · 过期：{{ message["expires_at"] }}{% endif %}
+            {{ message["created_at"] | shanghai_time }}
+            {% if message["expires_at"] %} · 过期：{{ message["expires_at"] | shanghai_time }}{% endif %}
             {% if message["size_bytes"] %} · {{ message["size_bytes"] }} bytes{% endif %}
           </small>
         </div>

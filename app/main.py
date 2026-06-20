@@ -10,6 +10,7 @@ from .auth import current_user, router as auth_router
 from .config import Settings, load_settings
 from .db import init_db
 from .messages import list_user_messages, router as messages_router
+from .time_utils import format_shanghai_time
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -24,6 +25,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app = FastAPI(lifespan=lifespan)
     app.state.settings = app_settings
     app.state.templates = Jinja2Templates(directory="app/templates")
+    app.state.templates.env.filters["shanghai_time"] = format_shanghai_time
     app.add_middleware(SessionMiddleware, secret_key=app_settings.secret_key)
     app.mount("/static", StaticFiles(directory="app/static"), name="static")
     app.include_router(auth_router)
