@@ -53,12 +53,11 @@ sudo bash deploy_ubuntu.sh
 脚本会：
 
 - 安装 `python3-venv` 和 `python3-pip`。
-- 部署应用到 `/opt/online_msg_forward`。
-- 创建 `/etc/online_msg_forward.env`。
+- 在当前项目目录创建 `.venv`、`.env`、`data/`、`uploads/`。
 - 创建并启动 `online_msg_forward.service`。
 - 创建每分钟运行一次的过期清理 timer。
 
-脚本不会安装或修改 `nginx`，也不会配置域名或 HTTPS。你可以自行把 `nginx` 反向代理到脚本输出的本地监听地址，默认是 `http://127.0.0.1:8000`。
+脚本不会复制代码到 `/opt`，也不会安装或修改 `nginx`，不会配置域名或 HTTPS。你可以自行把 `nginx` 反向代理到脚本输出的本地监听地址，默认是 `http://127.0.0.1:8000`。
 
 常用命令：
 

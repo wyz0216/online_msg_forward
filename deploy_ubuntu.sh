@@ -2,8 +2,6 @@
 set -euo pipefail
 
 APP_NAME="online_msg_forward"
-APP_DIR="/opt/${APP_NAME}"
-ENV_FILE="/etc/${APP_NAME}.env"
 SERVICE_FILE="/etc/systemd/system/${APP_NAME}.service"
 CLEANUP_SERVICE_FILE="/etc/systemd/system/${APP_NAME}-cleanup.service"
 CLEANUP_TIMER_FILE="/etc/systemd/system/${APP_NAME}-cleanup.timer"
@@ -15,12 +13,13 @@ if [[ "${EUID}" -ne 0 ]]; then
 fi
 
 SRC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+APP_DIR="${SRC_DIR}"
+ENV_FILE="${APP_DIR}/.env"
 
 apt-get update
 apt-get install -y python3-venv python3-pip
 
 mkdir -p "${APP_DIR}/data" "${APP_DIR}/uploads"
-cp -a "${SRC_DIR}/app" "${SRC_DIR}/requirements.txt" "${SRC_DIR}/README.md" "${APP_DIR}/"
 
 python3 -m venv "${APP_DIR}/.venv"
 "${APP_DIR}/.venv/bin/python" -m pip install --upgrade pip
@@ -86,6 +85,7 @@ systemctl enable --now "${APP_NAME}-cleanup.timer"
 systemctl restart "${APP_NAME}.service"
 
 echo "${APP_NAME} deployed."
+echo "App directory: ${APP_DIR}"
 echo "App listens on http://127.0.0.1:${PORT}"
 echo "Configure your own nginx reverse proxy to this local address."
 echo "Service status: systemctl status ${APP_NAME}.service"
