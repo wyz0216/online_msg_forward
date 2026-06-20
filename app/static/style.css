@@ -1,0 +1,147 @@
+:root {
+  color-scheme: light;
+  font-family: Arial, "Microsoft YaHei", sans-serif;
+  background: #f6f7f9;
+  color: #1f2933;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+a {
+  color: #1769aa;
+}
+
+button,
+.button {
+  border: 0;
+  border-radius: 6px;
+  background: #1769aa;
+  color: #fff;
+  cursor: pointer;
+  display: inline-block;
+  font: inherit;
+  padding: 10px 14px;
+  text-decoration: none;
+}
+
+button.secondary,
+.button.secondary {
+  background: #d9e2ec;
+  color: #1f2933;
+}
+
+button.danger {
+  background: #b42318;
+}
+
+input,
+select,
+textarea {
+  border: 1px solid #bcccdc;
+  border-radius: 6px;
+  font: inherit;
+  padding: 10px;
+  width: 100%;
+}
+
+label {
+  display: grid;
+  gap: 6px;
+}
+
+.page {
+  margin: 0 auto;
+  max-width: 920px;
+  padding: 32px 16px;
+}
+
+.auth-panel,
+.composer,
+.message-item {
+  background: #fff;
+  border: 1px solid #d9e2ec;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.auth-panel {
+  margin: 10vh auto 0;
+  max-width: 420px;
+}
+
+.stack {
+  display: grid;
+  gap: 14px;
+}
+
+.topbar,
+.message-item,
+.actions {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+}
+
+.topbar,
+.message-item {
+  justify-content: space-between;
+}
+
+.composer {
+  margin: 24px 0;
+}
+
+.message-list {
+  display: grid;
+  gap: 12px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.message-main {
+  min-width: 0;
+}
+
+.message-main p {
+  margin: 8px 0;
+  overflow-wrap: anywhere;
+}
+
+.badge {
+  background: #edf2f7;
+  border-radius: 999px;
+  color: #334e68;
+  display: inline-block;
+  font-size: 12px;
+  padding: 3px 8px;
+}
+
+.muted,
+small,
+.empty {
+  color: #627d98;
+}
+
+.actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+@media (max-width: 640px) {
+  .topbar,
+  .message-item {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .actions {
+    justify-content: flex-start;
+  }
+}

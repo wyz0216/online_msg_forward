@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}我的消息{% endblock %}
+{% block body %}
+<header class="topbar">
+  <div>
+    <h1>我的消息</h1>
+    <p class="muted">{{ user["username"] }}</p>
+  </div>
+  <form method="post" action="/logout">
+    <button type="submit" class="secondary">退出</button>
+  </form>
+</header>
+
+<section class="composer">
+  <form method="post" action="/messages" enctype="multipart/form-data" class="stack">
+    <label>
+      文本
+      <textarea name="content" rows="4" placeholder="输入要保存的文本"></textarea>
+    </label>
+    <label>
+      文件或图片
+      <input name="upload" type="file">
+    </label>
+    <label>
+      自动删除
+      <select name="expires_minutes">
+        <option value="">不自动删除</option>
+        {% for minutes in expiration_options %}
+        <option value="{{ minutes }}">{{ minutes }} 分钟</option>
+        {% endfor %}
+      </select>
+    </label>
+    <button type="submit">发送</button>
+  </form>
+</section>
+
+<section class="messages">
+  {% if messages %}
+  <ul class="message-list">
+    {% for message in messages %}
+    <li class="message-item">
+      <div class="message-main">
+        <span class="badge">{{ message["kind"] }}</span>
+        {% if message["kind"] == "text" %}
+        <p>{{ message["content"] }}</p>
+        {% else %}
+        <p>{{ message["original_filename"] }}</p>
+        {% endif %}
+        <small>
+          创建：{{ message["created_at"] }}
+          {% if message["expires_at"] %} · 过期：{{ message["expires_at"] }}{% endif %}
+          {% if message["size_bytes"] %} · {{ message["size_bytes"] }} bytes{% endif %}
+        </small>
+      </div>
+      <div class="actions">
+        {% if message["stored_filename"] %}
+        <a class="button secondary" href="/messages/{{ message['id'] }}/download">下载</a>
+        {% endif %}
+        <form method="post" action="/messages/{{ message['id'] }}/delete">
+          <button type="submit" class="danger">删除</button>
+        </form>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="empty">暂无消息</p>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}注册{% endblock %}
+{% block body %}
+<section class="auth-panel">
+  <h1>注册</h1>
+  <form method="post" action="/register" class="stack">
+    <label>
+      用户名
+      <input name="username" autocomplete="username" required>
+    </label>
+    <label>
+      密码
+      <input name="password" type="password" autocomplete="new-password" required>
+    </label>
+    <button type="submit">注册</button>
+  </form>
+  <p class="muted"><a href="/login">已有账号，去登录</a></p>
+</section>
+{% endblock %}

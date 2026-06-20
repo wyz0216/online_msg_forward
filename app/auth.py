@@ -3,7 +3,7 @@ import secrets
 import sqlite3
 
 from fastapi import APIRouter, Form, HTTPException, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import RedirectResponse
 
 from .db import connect
 
@@ -45,9 +45,9 @@ def require_user(request: Request) -> sqlite3.Row:
     return user
 
 
-@router.get("/register", response_class=HTMLResponse)
-def register_page() -> str:
-    return "<h1>Register</h1>"
+@router.get("/register")
+def register_page(request: Request):
+    return request.app.state.templates.TemplateResponse(request, "register.html")
 
 
 @router.post("/register")
@@ -70,9 +70,9 @@ def register(
     return RedirectResponse("/login", status_code=303)
 
 
-@router.get("/login", response_class=HTMLResponse)
-def login_page() -> str:
-    return "<h1>Login</h1>"
+@router.get("/login")
+def login_page(request: Request):
+    return request.app.state.templates.TemplateResponse(request, "login.html")
 
 
 @router.post("/login")
