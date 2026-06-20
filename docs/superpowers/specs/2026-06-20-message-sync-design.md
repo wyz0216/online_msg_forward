@@ -21,7 +21,7 @@
 ## 非目标
 
 - 不实现邀请码注册。
-- 不默认配置域名和 HTTPS。
+- 不配置 `nginx`、域名和 HTTPS；这些由用户在 VPS 上自行处理。
 - 不引入 Celery、Redis、PostgreSQL 等额外服务。
 - 不实现跨用户共享消息。
 - 不实现移动端 App 或独立客户端。
@@ -35,7 +35,7 @@
 - `Jinja2` 渲染服务端页面，避免引入前端构建链。
 - 本地文件系统保存上传文件和图片。
 - `systemd` 管理应用服务和定时清理。
-- `nginx` 反向代理到本地 `uvicorn` 服务。
+- 应用由 `uvicorn` 监听本地端口，VPS 上的 `nginx` 反向代理由用户自行配置。
 
 这个方案优先满足“小、简单、能直接部署”的目标。它适合自用或小规模多用户场景；如果未来并发和数据规模明显增大，再迁移到 PostgreSQL。
 
@@ -186,18 +186,17 @@ README.md
 
 `deploy_ubuntu.sh` 面向 Ubuntu VPS：
 
-1. 安装系统依赖：`python3-venv`、`python3-pip`、`nginx`。
+1. 安装系统依赖：`python3-venv`、`python3-pip`。
 2. 创建应用目录：`/opt/online_msg_forward`。
 3. 创建 Python 虚拟环境。
 4. 安装 `requirements.txt`。
 5. 写入生产 `.env`。
 6. 创建上传目录。
 7. 创建 `systemd` 服务，用 `uvicorn` 启动应用。
-8. 配置 `nginx` 反向代理到本地应用端口。
-9. 配置 `systemd timer` 每分钟调用清理接口。
-10. 重启服务并输出访问地址和常用命令。
+8. 配置 `systemd timer` 每分钟调用清理接口。
+9. 重启服务并输出本地监听端口和常用命令。
 
-脚本默认通过服务器 IP 访问，不默认申请证书。HTTPS 和域名配置留到后续明确需求时再加。
+脚本不安装或修改 `nginx` 配置，不申请证书，也不写入域名配置。用户可在 VPS 上自行把外部流量反向代理到应用监听端口。
 
 ## 成功标准
 
