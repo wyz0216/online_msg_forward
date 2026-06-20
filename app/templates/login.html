@@ -16,4 +16,9 @@
   </form>
   <p class="muted"><a href="/register">注册账号</a></p>
 </section>
+{% if login_error %}
+<script>
+  alert({{ login_error | tojson }});
+</script>
+{% endif %}
 {% endblock %}

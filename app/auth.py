@@ -80,11 +80,16 @@ def login(
     request: Request,
     username: str = Form(...),
     password: str = Form(...),
-) -> RedirectResponse:
+):
     with connect(request.app.state.settings.database_path) as conn:
         user = conn.execute("SELECT * FROM users WHERE username = ?", (username.strip(),)).fetchone()
     if user is None or not verify_password(password, user["password_hash"]):
-        raise HTTPException(status_code=400, detail="Invalid username or password")
+        return request.app.state.templates.TemplateResponse(
+            request,
+            "login.html",
+            {"login_error": "用户名或密码错误"},
+            status_code=200,
+        )
     request.session["user_id"] = user["id"]
     return RedirectResponse("/", status_code=303)
 
