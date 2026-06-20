@@ -36,6 +36,9 @@ def test_message_page_has_refresh_button(client):
     response = client.get("/")
 
     assert response.status_code == 200
+    assert 'class="page-shell"' in response.text
+    assert 'class="panel composer-panel"' in response.text
+    assert 'class="section-heading"' in response.text
     assert 'data-refresh-button' in response.text
     assert "刷新" in response.text
 

@@ -4,7 +4,7 @@
 <header class="topbar">
   <div>
     <h1>我的消息</h1>
-    <p class="muted">{{ user["username"] }}</p>
+    <p class="muted">当前用户：{{ user["username"] }}</p>
   </div>
   <div class="top-actions">
     <button type="button" class="secondary" data-refresh-button>刷新</button>
@@ -14,51 +14,64 @@
   </div>
 </header>
 
-<section class="composer">
-  <form method="post" action="/messages" enctype="multipart/form-data" class="stack">
-    <label>
-      文本
-      <textarea name="content" rows="4" placeholder="输入要保存的文本"></textarea>
-    </label>
-    <label>
-      文件或图片
-      <input name="upload" type="file">
-    </label>
-    <label>
-      自动删除
-      <select name="expires_minutes">
-        <option value="">不自动删除</option>
-        {% for minutes in expiration_options %}
-        <option value="{{ minutes }}">{{ minutes }} 分钟</option>
-        {% endfor %}
-      </select>
-    </label>
-    <button type="submit">发送</button>
+<section class="panel composer-panel">
+  <div class="section-heading">
+    <div>
+      <h2>发送消息</h2>
+      <p class="muted">文本、图片和文件都会保存在你的账号下。</p>
+    </div>
+  </div>
+  <form method="post" action="/messages" enctype="multipart/form-data">
+    <textarea name="content" rows="4" placeholder="输入要保存的文本"></textarea>
+    <div class="composer-grid">
+      <label>
+        文件或图片
+        <input name="upload" type="file">
+      </label>
+      <label>
+        自动删除
+        <select name="expires_minutes">
+          <option value="">不自动删除</option>
+          {% for minutes in expiration_options %}
+          <option value="{{ minutes }}">{{ minutes }} 分钟</option>
+          {% endfor %}
+        </select>
+      </label>
+      <button type="submit">发送</button>
+    </div>
   </form>
 </section>
 
-<section class="messages">
+<section class="panel messages-panel">
+  <div class="section-heading">
+    <div>
+      <h2>消息列表</h2>
+      <p class="muted">{{ messages|length }} 条消息</p>
+    </div>
+  </div>
   {% if messages %}
   <ul class="message-list">
     {% for message in messages %}
     <li class="message-item">
       <div class="message-main">
-        <span class="badge">{{ message["kind"] }}</span>
+        <div class="message-meta-row">
+          <span class="badge">{{ message["kind"] }}</span>
+          <small>
+            {{ message["created_at"] }}
+            {% if message["expires_at"] %} · 过期：{{ message["expires_at"] }}{% endif %}
+            {% if message["size_bytes"] %} · {{ message["size_bytes"] }} bytes{% endif %}
+          </small>
+        </div>
         {% if message["kind"] == "text" %}
-        <p>{{ message["content"] }}</p>
+        <p class="text-message">{{ message["content"] }}</p>
         {% elif message["kind"] == "image" %}
         <a href="/messages/{{ message['id'] }}/download" class="image-link">
           <img src="/messages/{{ message['id'] }}/download" alt="{{ message['original_filename'] }}" class="image-preview">
         </a>
-        <p>{{ message["original_filename"] }}</p>
+        <p class="file-name">{{ message["original_filename"] }}</p>
         {% else %}
-        <p>{{ message["original_filename"] }}</p>
+        <p class="file-name">{{ message["original_filename"] }}</p>
         {% endif %}
-        <small>
-          创建：{{ message["created_at"] }}
-          {% if message["expires_at"] %} · 过期：{{ message["expires_at"] }}{% endif %}
-          {% if message["size_bytes"] %} · {{ message["size_bytes"] }} bytes{% endif %}
-        </small>
       </div>
       <div class="actions">
         {% if message["kind"] == "text" %}
