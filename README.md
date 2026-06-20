@@ -53,9 +53,13 @@ sudo bash deploy_ubuntu.sh
 脚本会：
 
 - 安装 `python3-venv` 和 `python3-pip`。
-- 在当前项目目录创建 `.venv`、`.env`、`data/`、`uploads/`。
+- 如果服务正在运行，先停止 `online_msg_forward.service` 和清理 timer。
+- 在当前项目目录创建 `.venv`、`data/`、`uploads/`。
+- 如果 `.env` 不存在则创建；如果 `.env` 已存在则保留，不覆盖已有配置。
 - 创建并启动 `online_msg_forward.service`。
 - 创建每分钟运行一次的过期清理 timer。
+
+脚本不会删除或重置 `data/` 和 `uploads/`，重复执行部署不会清空已有数据库和上传文件。
 
 脚本不会复制代码到 `/opt`，也不会安装或修改 `nginx`，不会配置域名或 HTTPS。你可以自行把 `nginx` 反向代理到脚本输出的本地监听地址，默认是 `http://127.0.0.1:8000`。
 

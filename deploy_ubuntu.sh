@@ -16,6 +16,13 @@ SRC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_DIR="${SRC_DIR}"
 ENV_FILE="${APP_DIR}/.env"
 
+if systemctl is-active --quiet "${APP_NAME}.service"; then
+  systemctl stop "${APP_NAME}.service"
+fi
+if systemctl is-active --quiet "${APP_NAME}-cleanup.timer"; then
+  systemctl stop "${APP_NAME}-cleanup.timer"
+fi
+
 apt-get update
 apt-get install -y python3-venv python3-pip
 
@@ -25,10 +32,12 @@ python3 -m venv "${APP_DIR}/.venv"
 "${APP_DIR}/.venv/bin/python" -m pip install --upgrade pip
 "${APP_DIR}/.venv/bin/python" -m pip install -r "${APP_DIR}/requirements.txt"
 
-SECRET_KEY="$("${APP_DIR}/.venv/bin/python" -c 'import secrets; print(secrets.token_urlsafe(48))')"
-CLEANUP_TOKEN="$("${APP_DIR}/.venv/bin/python" -c 'import secrets; print(secrets.token_urlsafe(32))')"
-
-cat > "${ENV_FILE}" <<ENV
+if [[ -f "${ENV_FILE}" ]]; then
+  echo "Keeping existing ${ENV_FILE}"
+else
+  SECRET_KEY="$("${APP_DIR}/.venv/bin/python" -c 'import secrets; print(secrets.token_urlsafe(48))')"
+  CLEANUP_TOKEN="$("${APP_DIR}/.venv/bin/python" -c 'import secrets; print(secrets.token_urlsafe(32))')"
+  cat > "${ENV_FILE}" <<ENV
 SECRET_KEY=${SECRET_KEY}
 DATABASE_PATH=${APP_DIR}/data/app.db
 UPLOAD_DIR=${APP_DIR}/uploads
@@ -37,6 +46,7 @@ CLEANUP_TOKEN=${CLEANUP_TOKEN}
 HOST=127.0.0.1
 PORT=${PORT}
 ENV
+fi
 chmod 600 "${ENV_FILE}"
 
 cat > "${SERVICE_FILE}" <<SERVICE
