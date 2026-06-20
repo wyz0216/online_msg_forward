@@ -6,3 +6,4 @@ data/
 uploads/
 *.db
 *.pyc
+*.log
