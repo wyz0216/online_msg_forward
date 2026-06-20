@@ -43,6 +43,11 @@
         <span class="badge">{{ message["kind"] }}</span>
         {% if message["kind"] == "text" %}
         <p>{{ message["content"] }}</p>
+        {% elif message["kind"] == "image" %}
+        <a href="/messages/{{ message['id'] }}/download" class="image-link">
+          <img src="/messages/{{ message['id'] }}/download" alt="{{ message['original_filename'] }}" class="image-preview">
+        </a>
+        <p>{{ message["original_filename"] }}</p>
         {% else %}
         <p>{{ message["original_filename"] }}</p>
         {% endif %}

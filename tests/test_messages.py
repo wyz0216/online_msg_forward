@@ -84,6 +84,23 @@ def test_oversized_file_is_rejected(client):
     assert "File is too large" in response.text
 
 
+def test_image_message_is_previewed_inline(client, settings):
+    sign_in(client)
+
+    client.post(
+        "/messages",
+        data={"content": "", "expires_minutes": ""},
+        files={"upload": ("photo.png", BytesIO(b"fake-png"), "image/png")},
+    )
+    image_id = message_ids(settings)[0]
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert f'<img src="/messages/{image_id}/download"' in response.text
+    assert 'alt="photo.png"' in response.text
+
+
 def test_expiration_minutes_must_be_allowed(client):
     sign_in(client)
 

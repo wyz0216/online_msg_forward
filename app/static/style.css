@@ -114,6 +114,21 @@ label {
   overflow-wrap: anywhere;
 }
 
+.image-link {
+  display: inline-block;
+  margin-top: 10px;
+}
+
+.image-preview {
+  border: 1px solid #d9e2ec;
+  border-radius: 6px;
+  display: block;
+  height: auto;
+  max-height: 220px;
+  max-width: min(100%, 360px);
+  object-fit: contain;
+}
+
 .badge {
   background: #edf2f7;
   border-radius: 999px;
