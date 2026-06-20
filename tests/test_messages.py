@@ -30,6 +30,41 @@ def test_text_message_is_created_and_listed(client):
     assert "hello from web" in page.text
 
 
+def test_message_page_has_refresh_button(client):
+    sign_in(client)
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert 'data-refresh-button' in response.text
+    assert "刷新" in response.text
+
+
+def test_text_message_has_copy_button(client):
+    sign_in(client)
+    client.post("/messages", data={"content": "copy me", "expires_minutes": ""})
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert 'data-copy-text="copy me"' in response.text
+    assert "复制" in response.text
+
+
+def test_file_message_has_no_copy_button(client):
+    sign_in(client)
+    client.post(
+        "/messages",
+        data={"content": "", "expires_minutes": ""},
+        files={"upload": ("a.txt", BytesIO(b"private"), "text/plain")},
+    )
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert 'data-copy-text=' not in response.text
+
+
 def test_users_only_see_their_own_messages(client):
     sign_in(client, "alice")
     client.post("/messages", data={"content": "alice secret", "expires_minutes": ""})

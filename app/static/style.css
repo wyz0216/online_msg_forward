@@ -81,6 +81,7 @@ label {
 }
 
 .topbar,
+.top-actions,
 .message-item,
 .actions {
   align-items: center;
@@ -156,6 +157,7 @@ small,
     flex-direction: column;
   }
 
+  .top-actions,
   .actions {
     justify-content: flex-start;
   }
