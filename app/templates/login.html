@@ -14,7 +14,9 @@
     </label>
     <button type="submit">登录</button>
   </form>
+  {% if allow_registration %}
   <p class="muted"><a href="/register">注册账号</a></p>
+  {% endif %}
 </section>
 {% if login_error %}
 <script>

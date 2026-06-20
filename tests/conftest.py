@@ -15,6 +15,7 @@ def settings(tmp_path):
         cleanup_token="test-cleanup-token",
         host="127.0.0.1",
         port=8000,
+        allow_registration=True,
     )
 
 

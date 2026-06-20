@@ -14,6 +14,7 @@ class Settings:
     cleanup_token: str
     host: str
     port: int
+    allow_registration: bool
 
     @property
     def max_upload_bytes(self) -> int:
@@ -30,4 +31,12 @@ def load_settings() -> Settings:
         cleanup_token=os.getenv("CLEANUP_TOKEN", "dev-cleanup-token"),
         host=os.getenv("HOST", "127.0.0.1"),
         port=int(os.getenv("PORT", "8000")),
+        allow_registration=_env_bool("ALLOW_REGISTRATION", True),
     )
+
+
+def _env_bool(name: str, default: bool) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() not in {"0", "false", "no", "off"}

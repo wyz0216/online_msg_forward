@@ -4,7 +4,7 @@
 
 ## 功能
 
-- 开放注册、登录、退出。
+- 可配置开放注册、登录、退出。
 - 用户只能查看、下载、删除自己的消息。
 - 支持文本、文件、图片。
 - 单个上传最大 20MB。
@@ -31,10 +31,13 @@ SECRET_KEY=change-me
 DATABASE_PATH=data/app.db
 UPLOAD_DIR=uploads
 MAX_UPLOAD_MB=20
+ALLOW_REGISTRATION=true
 CLEANUP_TOKEN=change-me
 HOST=127.0.0.1
 PORT=8000
 ```
+
+`ALLOW_REGISTRATION=false` 时，登录页不显示注册入口，`/register` 页面和提交接口都会关闭。
 
 ## 测试
 

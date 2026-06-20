@@ -1,4 +1,14 @@
+from dataclasses import replace
+
+from fastapi.testclient import TestClient
+
+from app.main import create_app
 from tests.conftest import login, register
+
+
+def client_with_registration(settings, enabled):
+    app = create_app(replace(settings, allow_registration=enabled))
+    return TestClient(app)
 
 
 def test_user_can_register(client):
@@ -6,6 +16,35 @@ def test_user_can_register(client):
 
     assert response.status_code == 303
     assert response.headers["location"] == "/login"
+
+
+def test_login_page_shows_register_link_when_registration_is_open(client):
+    response = client.get("/login")
+
+    assert response.status_code == 200
+    assert '<a href="/register">注册账号</a>' in response.text
+
+
+def test_login_page_hides_register_link_when_registration_is_closed(settings):
+    with client_with_registration(settings, False) as client:
+        response = client.get("/login")
+
+    assert response.status_code == 200
+    assert '<a href="/register">注册账号</a>' not in response.text
+
+
+def test_register_page_is_not_available_when_registration_is_closed(settings):
+    with client_with_registration(settings, False) as client:
+        response = client.get("/register")
+
+    assert response.status_code == 404
+
+
+def test_register_post_is_not_available_when_registration_is_closed(settings):
+    with client_with_registration(settings, False) as client:
+        response = register(client)
+
+    assert response.status_code == 404
 
 
 def test_duplicate_username_is_rejected(client):

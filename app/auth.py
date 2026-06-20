@@ -47,6 +47,8 @@ def require_user(request: Request) -> sqlite3.Row:
 
 @router.get("/register")
 def register_page(request: Request):
+    if not request.app.state.settings.allow_registration:
+        raise HTTPException(status_code=404)
     return request.app.state.templates.TemplateResponse(request, "register.html")
 
 
@@ -56,6 +58,8 @@ def register(
     username: str = Form(...),
     password: str = Form(...),
 ) -> RedirectResponse:
+    if not request.app.state.settings.allow_registration:
+        raise HTTPException(status_code=404)
     username = username.strip()
     if not username or not password:
         raise HTTPException(status_code=400, detail="Username and password are required")
@@ -72,7 +76,11 @@ def register(
 
 @router.get("/login")
 def login_page(request: Request):
-    return request.app.state.templates.TemplateResponse(request, "login.html")
+    return request.app.state.templates.TemplateResponse(
+        request,
+        "login.html",
+        {"allow_registration": request.app.state.settings.allow_registration},
+    )
 
 
 @router.post("/login")
@@ -87,7 +95,10 @@ def login(
         return request.app.state.templates.TemplateResponse(
             request,
             "login.html",
-            {"login_error": "用户名或密码错误"},
+            {
+                "allow_registration": request.app.state.settings.allow_registration,
+                "login_error": "用户名或密码错误",
+            },
             status_code=200,
         )
     request.session["user_id"] = user["id"]
