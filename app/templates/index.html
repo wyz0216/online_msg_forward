@@ -65,9 +65,18 @@
         {% if message["kind"] == "text" %}
         <p class="text-message">{{ message["content"] }}</p>
         {% elif message["kind"] == "image" %}
-        <a href="/messages/{{ message['id'] }}/download" class="image-link">
+        <button type="button" class="image-preview-button" data-preview-target="image-preview-{{ message['id'] }}" aria-label="放大查看 {{ message['original_filename'] }}">
           <img src="/messages/{{ message['id'] }}/download" alt="{{ message['original_filename'] }}" class="image-preview">
-        </a>
+        </button>
+        <dialog id="image-preview-{{ message['id'] }}" class="image-dialog">
+          <article>
+            <header>
+              <button type="button" aria-label="关闭" rel="prev" data-preview-close="image-preview-{{ message['id'] }}"></button>
+              <p>{{ message["original_filename"] }}</p>
+            </header>
+            <img src="/messages/{{ message['id'] }}/download" alt="{{ message['original_filename'] }}" class="image-full">
+          </article>
+        </dialog>
         <p class="file-name">{{ message["original_filename"] }}</p>
         {% else %}
         <p class="file-name">{{ message["original_filename"] }}</p>
@@ -78,7 +87,7 @@
         <button type="button" class="secondary" data-copy-text="{{ message['content'] }}">复制</button>
         {% endif %}
         {% if message["stored_filename"] %}
-        <a class="button secondary" href="/messages/{{ message['id'] }}/download">下载</a>
+        <a href="/messages/{{ message['id'] }}/download" role="button" class="secondary outline download-button">下载</a>
         {% endif %}
         <form method="post" action="/messages/{{ message['id'] }}/delete">
           <button type="submit" class="danger">删除</button>
@@ -121,6 +130,24 @@
       setTimeout(() => {
         button.textContent = originalText;
       }, 1200);
+    });
+  });
+
+  document.querySelectorAll("[data-preview-target]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const dialog = document.getElementById(button.dataset.previewTarget);
+      if (dialog) {
+        dialog.showModal();
+      }
+    });
+  });
+
+  document.querySelectorAll("[data-preview-close]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const dialog = document.getElementById(button.dataset.previewClose);
+      if (dialog) {
+        dialog.close();
+      }
     });
   });
 </script>

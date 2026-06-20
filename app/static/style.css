@@ -14,13 +14,13 @@ body {
 }
 
 button,
-.button {
+[role="button"] {
   border-radius: 7px;
   white-space: nowrap;
 }
 
 button.secondary,
-.button.secondary {
+[role="button"].secondary {
   --pico-background-color: #eef3f8;
   --pico-border-color: #d5dee8;
   --pico-color: #23384d;
@@ -165,9 +165,13 @@ small,
   font-weight: 600;
 }
 
-.image-link {
+.image-preview-button {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
   display: inline-block;
   margin-top: 12px;
+  padding: 0;
 }
 
 .image-preview {
@@ -181,6 +185,24 @@ small,
   object-fit: contain;
 }
 
+.image-dialog article {
+  max-width: min(92vw, 960px);
+}
+
+.image-dialog header p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.image-full {
+  border-radius: 8px;
+  display: block;
+  height: auto;
+  max-height: 78vh;
+  max-width: 100%;
+  object-fit: contain;
+}
+
 .actions {
   align-content: flex-start;
   flex-wrap: wrap;
@@ -188,8 +210,12 @@ small,
 }
 
 .actions button,
-.actions .button {
+.actions [role="button"] {
   padding: 8px 11px;
+}
+
+.download-button {
+  text-decoration: none;
 }
 
 .empty {

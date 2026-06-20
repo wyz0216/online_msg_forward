@@ -139,6 +139,40 @@ def test_image_message_is_previewed_inline(client, settings):
     assert 'alt="photo.png"' in response.text
 
 
+def test_image_preview_opens_dialog_instead_of_download_link(client, settings):
+    sign_in(client)
+
+    client.post(
+        "/messages",
+        data={"content": "", "expires_minutes": ""},
+        files={"upload": ("photo.png", BytesIO(b"fake-png"), "image/png")},
+    )
+    image_id = message_ids(settings)[0]
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert f'data-preview-target="image-preview-{image_id}"' in response.text
+    assert f'<dialog id="image-preview-{image_id}"' in response.text
+    assert f'<a href="/messages/{image_id}/download" class="image-link">' not in response.text
+
+
+def test_download_link_uses_button_role(client, settings):
+    sign_in(client)
+
+    client.post(
+        "/messages",
+        data={"content": "", "expires_minutes": ""},
+        files={"upload": ("a.txt", BytesIO(b"private"), "text/plain")},
+    )
+    file_id = message_ids(settings)[0]
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert f'href="/messages/{file_id}/download" role="button"' in response.text
+
+
 def test_expiration_minutes_must_be_allowed(client):
     sign_in(client)
 
