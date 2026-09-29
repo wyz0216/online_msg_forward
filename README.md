@@ -7,7 +7,7 @@
 - 可配置开放注册、登录、退出。
 - 用户只能查看、下载、删除自己的消息。
 - 支持文本、文件、图片。
-- 单个上传最大 20MB。
+- 单个上传默认最大 200MB，可通过 `MAX_UPLOAD_MB` 调整。
 - 支持选择文件、拖拽到发送区、在发送区粘贴截图；每次发送一个文件。
 - 上传时显示进度，失败后保留文本和文件，可点击“重试发送”。上传 100% 后仍需等待服务器确认保存。
 - 消息每页显示 30 条，搜索与类型筛选覆盖当前账号的全部消息；翻页、搜索时保留发送框内容。
@@ -33,7 +33,7 @@ python -m uvicorn app.main:app --reload
 SECRET_KEY=change-me
 DATABASE_PATH=data/app.db
 UPLOAD_DIR=uploads
-MAX_UPLOAD_MB=20
+MAX_UPLOAD_MB=200
 ALLOW_REGISTRATION=true
 CLEANUP_TOKEN=change-me
 HOST=127.0.0.1

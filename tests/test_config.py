@@ -18,8 +18,8 @@ def test_load_settings_uses_small_defaults(monkeypatch):
     assert settings.secret_key == "dev-secret-change-me"
     assert settings.database_path == Path("data/app.db")
     assert settings.upload_dir == Path("uploads")
-    assert settings.max_upload_mb == 20
-    assert settings.max_upload_bytes == 20 * 1024 * 1024
+    assert settings.max_upload_mb == 200
+    assert settings.max_upload_bytes == 200 * 1024 * 1024
     assert settings.cleanup_token == "dev-cleanup-token"
     assert settings.host == "127.0.0.1"
     assert settings.port == 8000
