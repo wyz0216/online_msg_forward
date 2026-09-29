@@ -11,6 +11,7 @@ from .db import connect
 
 
 ALLOWED_EXPIRATION_MINUTES = {1, 5, 10, 30, 60}
+PAGE_SIZE = 30
 router = APIRouter()
 
 
@@ -44,18 +45,35 @@ def cleanup_expired(settings: Settings) -> int:
     return deleted
 
 
-def list_user_messages(settings: Settings, user_id: int):
+def list_user_messages(settings: Settings, user_id: int, page: int = 1, query: str = "", kind: str = "all"):
     cleanup_expired(settings)
+    conditions = ["user_id = ?"]
+    parameters = [user_id]
+    if kind != "all":
+        conditions.append("kind = ?")
+        parameters.append(kind)
+    if query:
+        conditions.append(
+            "(instr(lower(coalesce(content, '')), lower(?)) > 0 "
+            "OR instr(lower(coalesce(original_filename, '')), lower(?)) > 0)"
+        )
+        parameters.extend([query, query])
+    where = " AND ".join(conditions)
     with connect(settings.database_path) as conn:
-        return conn.execute(
-            """
+        total = conn.execute(f"SELECT count(*) FROM messages WHERE {where}", parameters).fetchone()[0]
+        page_count = max(1, (total + PAGE_SIZE - 1) // PAGE_SIZE)
+        page = min(max(1, page), page_count)
+        messages = conn.execute(
+            f"""
             SELECT *
             FROM messages
-            WHERE user_id = ?
+            WHERE {where}
             ORDER BY created_at DESC, id DESC
+            LIMIT ? OFFSET ?
             """,
-            (user_id,),
+            [*parameters, PAGE_SIZE, (page - 1) * PAGE_SIZE],
         ).fetchall()
+    return {"messages": messages, "total": total, "page": page, "page_count": page_count}
 
 
 def _safe_stored_name(filename: str) -> str:

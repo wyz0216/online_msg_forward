@@ -34,5 +34,7 @@ def init_db(database_path: Path) -> None:
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             );
+            CREATE INDEX IF NOT EXISTS idx_messages_user_created
+                ON messages(user_id, created_at DESC, id DESC);
             """
         )

@@ -1,6 +1,8 @@
 from contextlib import asynccontextmanager
+from typing import Literal
+from urllib.parse import urlencode
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Query, Request
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -32,18 +34,31 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(messages_router)
 
     @app.get("/")
-    def index(request: Request):
+    def index(
+        request: Request,
+        page: int = Query(1, ge=1),
+        q: str = Query("", max_length=200),
+        kind: Literal["all", "text", "image", "file"] = "all",
+    ):
         user = current_user(request)
         if user is None:
             return RedirectResponse("/login", status_code=303)
-        messages = list_user_messages(app_settings, user["id"])
+        query = q.strip()
+        result = list_user_messages(app_settings, user["id"], page, query, kind)
+        page = result["page"]
         return request.app.state.templates.TemplateResponse(
             request,
             "index.html",
             {
                 "user": user,
-                "messages": messages,
+                **result,
+                "query": query,
+                "kind": kind,
+                "previous_url": "/?" + urlencode({"page": page - 1, "q": query, "kind": kind}) if page > 1 else None,
+                "next_url": "/?" + urlencode({"page": page + 1, "q": query, "kind": kind}) if page < result["page_count"] else None,
                 "expiration_options": [1, 5, 10, 30, 60],
+                "max_upload_mb": app_settings.max_upload_mb,
+                "max_upload_bytes": app_settings.max_upload_bytes,
             },
         )
 

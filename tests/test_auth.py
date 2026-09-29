@@ -71,7 +71,7 @@ def test_bad_password_is_rejected(client):
     response = login(client, password="wrong")
 
     assert response.status_code == 200
-    assert 'alert("\\u7528\\u6237\\u540d\\u6216\\u5bc6\\u7801\\u9519\\u8bef")' in response.text
+    assert '<p class="form-error" role="alert">用户名或密码错误</p>' in response.text
     assert "<h1>登录</h1>" in response.text
 
 
