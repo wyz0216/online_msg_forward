@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}分享的消息{% endblock %}
+{% block body %}
+<header class="topbar">
+  <div>
+    <p class="eyebrow">消息分享</p>
+    <h1>分享的消息</h1>
+    <p class="muted">无需登录即可查看、下载。</p>
+  </div>
+</header>
+<section class="panel shared-message" aria-label="分享的消息">
+  <div class="message-meta-row">
+    <span class="badge badge-{{ message['kind'] }}">{{ {"text": "文本", "image": "图片", "file": "文件"}[message["kind"]] }}</span>
+    <small>
+      {{ message["created_at"] | shanghai_time }}
+      {% if message["expires_at"] %} · 过期：{{ message["expires_at"] | shanghai_time }}{% endif %}
+      {% if message["size_bytes"] is not none %} · {{ message["size_bytes"] | filesizeformat(true) }}{% endif %}
+    </small>
+  </div>
+  {% if message["kind"] == "text" %}
+  <p class="text-message">{{ message["content"] }}</p>
+  {% else %}
+  {% if can_preview %}
+  <a href="/s/{{ token }}/download?preview=true" target="_blank" rel="noopener" aria-label="查看原图">
+    <img src="/s/{{ token }}/download?preview=true" alt="{{ message['original_filename'] }}" class="image-preview shared-preview">
+  </a>
+  {% endif %}
+  <p class="file-name">{{ message["original_filename"] }}</p>
+  <div class="actions message-actions">
+    <a href="/s/{{ token }}/download" role="button" class="secondary outline download-button">下载文件</a>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

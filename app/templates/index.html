@@ -108,6 +108,11 @@
         {% endif %}
       </div>
       <div class="actions message-actions">
+        {% if not message["share_token"] %}
+        <form method="post" action="/messages/{{ message['id'] }}/share" data-share-form>
+          <button type="submit" class="secondary">分享</button>
+        </form>
+        {% endif %}
         {% if message["kind"] == "text" %}
         <button type="button" class="secondary" data-copy-text="{{ message['content'] }}">复制</button>
         {% endif %}
@@ -118,6 +123,18 @@
           <button type="submit" class="danger">删除</button>
         </form>
       </div>
+      {% if message["share_token"] %}
+      <div class="share-controls">
+        <label for="share-link-{{ message['id'] }}">分享链接 · 持有链接的人无需登录即可查看、下载</label>
+        <input id="share-link-{{ message['id'] }}" type="url" value="{{ request.url_for('share_page', token=message['share_token']) }}" readonly>
+        <div class="actions">
+          <button type="button" class="secondary" data-copy-text="{{ request.url_for('share_page', token=message['share_token']) }}">复制链接</button>
+          <form method="post" action="/messages/{{ message['id'] }}/share/revoke" data-share-form data-share-revoke>
+            <button type="submit" class="danger">取消分享</button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
     </li>
     {% endfor %}
   </ul>

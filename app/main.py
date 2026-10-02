@@ -12,6 +12,7 @@ from .auth import current_user, router as auth_router
 from .config import Settings, load_settings
 from .db import init_db
 from .messages import list_user_messages, router as messages_router
+from .shares import router as shares_router
 from .time_utils import format_shanghai_time
 
 
@@ -32,6 +33,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.mount("/static", StaticFiles(directory="app/static"), name="static")
     app.include_router(auth_router)
     app.include_router(messages_router)
+    app.include_router(shares_router)
 
     @app.get("/")
     def index(

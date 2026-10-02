@@ -36,5 +36,11 @@ def init_db(database_path: Path) -> None:
             );
             CREATE INDEX IF NOT EXISTS idx_messages_user_created
                 ON messages(user_id, created_at DESC, id DESC);
+
+            CREATE TABLE IF NOT EXISTS message_shares (
+                message_id INTEGER PRIMARY KEY,
+                token TEXT NOT NULL UNIQUE,
+                FOREIGN KEY (message_id) REFERENCES messages(id) ON DELETE CASCADE
+            );
             """
         )

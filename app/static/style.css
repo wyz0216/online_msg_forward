@@ -509,6 +509,25 @@ small,
   text-decoration: none;
 }
 
+.share-controls label {
+  color: var(--app-muted);
+  font-size: 0.8rem;
+}
+
+.share-controls input {
+  font-size: 0.8rem;
+  margin-bottom: 10px;
+}
+
+.shared-message {
+  max-width: 800px;
+}
+
+.shared-preview {
+  margin-top: 16px;
+  max-height: 560px;
+}
+
 .empty {
   background: #f8fafc;
   border: 1px dashed #cfd9e4;

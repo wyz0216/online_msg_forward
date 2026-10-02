@@ -230,6 +230,13 @@ document.addEventListener("click", (event) => {
 });
 
 document.addEventListener("submit", (event) => {
+  if (event.target.matches("[data-share-form]")) {
+    event.preventDefault();
+    if (sending) return;
+    const shareForm = event.target;
+    if (shareForm.hasAttribute("data-share-revoke") && !window.confirm("取消分享后，原链接将立即失效。确定取消吗？")) return;
+    changeShare(shareForm);
+  }
   if (event.target.matches("[data-delete-form]")) {
     if (sending || !window.confirm("确定删除这条消息吗？删除后无法恢复。")) event.preventDefault();
   }
@@ -241,6 +248,35 @@ document.addEventListener("submit", (event) => {
     loadMessages(url.href);
   }
 });
+
+async function changeShare(shareForm) {
+  const button = shareForm.querySelector("button");
+  if (button.disabled) return;
+  button.disabled = true;
+  button.setAttribute("aria-busy", "true");
+  try {
+    const response = await fetch(shareForm.action, {method: "POST", headers: {Accept: "application/json"}});
+    if (new URL(response.url).pathname === "/login") throw new Error("登录已过期，请重新登录。");
+    if (!response.ok) throw new Error("分享操作失败，请刷新消息列表后重试。");
+    const result = await response.json();
+    if (result.share_path) {
+      try {
+        await copyText(new URL(result.share_path, window.location.origin).href);
+        notify("分享链接已复制，对方无需登录即可查看。");
+      } catch {
+        notify("分享已开启，请在消息下方选中链接手动复制。");
+      }
+    } else {
+      notify("已取消分享，原链接已失效。");
+    }
+    await loadMessages(window.location.href, false);
+  } catch (error) {
+    notify(error instanceof TypeError ? "分享操作失败，请检查网络后重试。" : error.message);
+  } finally {
+    button.disabled = false;
+    button.removeAttribute("aria-busy");
+  }
+}
 
 let listRequest;
 async function loadMessages(url, pushHistory = true) {
