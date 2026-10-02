@@ -21,14 +21,17 @@
   <p class="text-message">{{ message["content"] }}</p>
   {% else %}
   {% if can_preview %}
-  <a href="/s/{{ token }}/download?preview=true" target="_blank" rel="noopener" aria-label="查看原图">
-    <img src="/s/{{ token }}/download?preview=true" alt="{{ message['original_filename'] }}" class="image-preview shared-preview">
+  <a href="{{ preview_url }}" target="_blank" rel="noopener" aria-label="查看原图">
+    <img src="{{ preview_url }}" alt="{{ message['original_filename'] }}" class="image-preview shared-preview">
   </a>
   {% endif %}
   <p class="file-name">{{ message["original_filename"] }}</p>
   <div class="actions message-actions">
-    <a href="/s/{{ token }}/download" role="button" class="secondary outline download-button">下载文件</a>
+    <a href="{{ download_url }}" role="button" class="secondary outline download-button">下载文件</a>
   </div>
+  {% if message["max_views"] is not none %}
+  <p class="field-hint">本次打开后可在 1 小时内预览、下载；刷新页面会再次计入打开次数。</p>
+  {% endif %}
   {% endif %}
 </section>
 {% endblock %}

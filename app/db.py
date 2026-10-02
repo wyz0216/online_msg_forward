@@ -40,7 +40,14 @@ def init_db(database_path: Path) -> None:
             CREATE TABLE IF NOT EXISTS message_shares (
                 message_id INTEGER PRIMARY KEY,
                 token TEXT NOT NULL UNIQUE,
+                max_views INTEGER,
+                view_count INTEGER NOT NULL DEFAULT 0,
                 FOREIGN KEY (message_id) REFERENCES messages(id) ON DELETE CASCADE
             );
             """
         )
+        share_columns = {row["name"] for row in conn.execute("PRAGMA table_info(message_shares)")}
+        if "max_views" not in share_columns:
+            conn.execute("ALTER TABLE message_shares ADD COLUMN max_views INTEGER")
+        if "view_count" not in share_columns:
+            conn.execute("ALTER TABLE message_shares ADD COLUMN view_count INTEGER NOT NULL DEFAULT 0")

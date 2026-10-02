@@ -255,11 +255,16 @@ async function changeShare(shareForm) {
   button.disabled = true;
   button.setAttribute("aria-busy", "true");
   try {
-    const response = await fetch(shareForm.action, {method: "POST", headers: {Accept: "application/json"}});
+    const response = await fetch(shareForm.action, {method: "POST", body: new FormData(shareForm), headers: {Accept: "application/json"}});
     if (new URL(response.url).pathname === "/login") throw new Error("登录已过期，请重新登录。");
-    if (!response.ok) throw new Error("分享操作失败，请刷新消息列表后重试。");
+    if (!response.ok) {
+      if (response.status === 400) throw new Error("打开次数请填写正整数，或留空不限。");
+      throw new Error("分享操作失败，请刷新消息列表后重试。");
+    }
     const result = await response.json();
-    if (result.share_path) {
+    if (shareForm.hasAttribute("data-share-settings")) {
+      notify("打开次数限制已保存，已用次数保留。");
+    } else if (result.share_path) {
       try {
         await copyText(new URL(result.share_path, window.location.origin).href);
         notify("分享链接已复制，对方无需登录即可查看。");

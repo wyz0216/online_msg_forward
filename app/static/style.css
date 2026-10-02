@@ -519,6 +519,35 @@ small,
   margin-bottom: 10px;
 }
 
+.share-limit-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.share-limit-form label {
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.share-limit-form input {
+  width: 110px;
+  margin: 0;
+  padding: 6px 8px;
+  font-size: 0.8rem;
+}
+
+.share-limit-form button {
+  margin: 0;
+  padding: 8px 11px;
+  font-size: 0.8rem;
+}
+
+.share-controls .field-hint {
+  margin-bottom: 10px;
+}
+
 .shared-message {
   max-width: 800px;
 }
