@@ -108,18 +108,35 @@ def test_user_cannot_delete_another_users_message(client, settings):
     assert message_ids(settings) == [message_id]
 
 
-def test_oversized_file_is_rejected(client):
+def test_file_at_size_limit_is_accepted(client, settings):
     sign_in(client)
-    too_large = BytesIO(b"x" * (20 * 1024 * 1024 + 1))
+    contents = b"x" * settings.max_upload_bytes
 
     response = client.post(
         "/messages",
-        data={"content": "", "expires_minutes": ""},
+        files={"upload": ("limit.bin", BytesIO(contents), "application/octet-stream")},
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 303
+    file_id = message_ids(settings)[0]
+    assert client.get(f"/messages/{file_id}/download").content == contents
+
+
+def test_oversized_file_is_rejected(client, settings):
+    sign_in(client)
+    too_large = BytesIO(b"x" * (settings.max_upload_bytes + 1))
+
+    response = client.post(
+        "/messages",
+        data={"content": "must not be saved", "expires_minutes": ""},
         files={"upload": ("big.bin", too_large, "application/octet-stream")},
     )
 
     assert response.status_code == 400
     assert "File is too large" in response.text
+    assert message_ids(settings) == []
+    assert not list(settings.upload_dir.iterdir())
 
 
 def test_image_message_is_previewed_inline(client, settings):

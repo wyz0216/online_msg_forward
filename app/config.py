@@ -27,7 +27,7 @@ def load_settings() -> Settings:
         secret_key=os.getenv("SECRET_KEY", "dev-secret-change-me"),
         database_path=Path(os.getenv("DATABASE_PATH", "data/app.db")),
         upload_dir=Path(os.getenv("UPLOAD_DIR", "uploads")),
-        max_upload_mb=int(os.getenv("MAX_UPLOAD_MB", "200")),
+        max_upload_mb=min(int(os.getenv("MAX_UPLOAD_MB", "200")), 200),
         cleanup_token=os.getenv("CLEANUP_TOKEN", "dev-cleanup-token"),
         host=os.getenv("HOST", "127.0.0.1"),
         port=int(os.getenv("PORT", "8000")),

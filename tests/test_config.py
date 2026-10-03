@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from app.config import load_settings
 
 
@@ -49,6 +51,16 @@ def test_load_settings_reads_environment(monkeypatch, tmp_path):
     assert settings.host == "0.0.0.0"
     assert settings.port == 9000
     assert settings.allow_registration is False
+
+
+@pytest.mark.parametrize("configured_mb", ["200", "500"])
+def test_upload_limit_cannot_exceed_200_mb(monkeypatch, configured_mb):
+    monkeypatch.setenv("MAX_UPLOAD_MB", configured_mb)
+
+    settings = load_settings()
+
+    assert settings.max_upload_mb == 200
+    assert settings.max_upload_bytes == 200 * 1024 * 1024
 
 
 def test_deploy_env_template_includes_registration_switch():

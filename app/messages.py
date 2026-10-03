@@ -120,7 +120,7 @@ async def create_message(
             created += 1
 
         if upload is not None and upload.filename:
-            data = await upload.read()
+            data = await upload.read(settings.max_upload_bytes + 1)
             if len(data) > settings.max_upload_bytes:
                 raise HTTPException(status_code=400, detail="File is too large")
             settings.upload_dir.mkdir(parents=True, exist_ok=True)
