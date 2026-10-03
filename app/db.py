@@ -42,6 +42,7 @@ def init_db(database_path: Path) -> None:
                 token TEXT NOT NULL UNIQUE,
                 max_views INTEGER,
                 view_count INTEGER NOT NULL DEFAULT 0,
+                password_hash TEXT,
                 FOREIGN KEY (message_id) REFERENCES messages(id) ON DELETE CASCADE
             );
             """
@@ -51,3 +52,5 @@ def init_db(database_path: Path) -> None:
             conn.execute("ALTER TABLE message_shares ADD COLUMN max_views INTEGER")
         if "view_count" not in share_columns:
             conn.execute("ALTER TABLE message_shares ADD COLUMN view_count INTEGER NOT NULL DEFAULT 0")
+        if "password_hash" not in share_columns:
+            conn.execute("ALTER TABLE message_shares ADD COLUMN password_hash TEXT")

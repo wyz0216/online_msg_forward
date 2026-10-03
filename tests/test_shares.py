@@ -9,6 +9,7 @@ import pytest
 from itsdangerous import TimestampSigner, URLSafeTimedSerializer
 
 from app.db import connect, init_db
+from app.auth import verify_password
 from tests.conftest import login, register
 
 
@@ -334,7 +335,7 @@ def test_count_limit_form_works_without_javascript(client, settings):
     assert response.status_code == 200
     assert "上限 3 次" in response.text
     assert "剩余 3 次" in response.text
-    assert "保存限制" in response.text
+    assert "保存设置" in response.text
     assert 'name="max_views"' in response.text
 
 
@@ -356,5 +357,185 @@ def test_existing_shares_upgrade_without_losing_links(client, settings):
         assert row["token"] == "existing-token"
         assert row["max_views"] is None
         assert row["view_count"] == 0
+        assert row["password_hash"] is None
     assert client.get("/s/existing-token").status_code == 200
     assert client.get("/s/existing-token").status_code == 200
+
+
+def protected_share(client, message_id, password="share-secret", **settings):
+    return client.post(
+        f"/messages/{message_id}/share", data={"password": password, **settings},
+        headers={"Accept": "application/json"},
+    )
+
+
+@pytest.mark.parametrize("kind,mime_type", [("text", None), ("file", "text/plain"), ("image", "image/png")])
+def test_password_protects_page_preview_and_download(client, settings, kind, mime_type):
+    message_id = create_message(client, settings, kind, mime_type=mime_type)
+    path = protected_share(client, message_id).json()["share_path"]
+    with connect(settings.database_path) as conn:
+        password_hash = conn.execute("SELECT password_hash FROM message_shares").fetchone()[0]
+    assert password_hash != "share-secret"
+    assert verify_password("share-secret", password_hash)
+    owner_page = client.get("/")
+    assert "已设置密码" in owner_page.text
+    assert "share-secret" not in owner_page.text
+    assert password_hash not in owner_page.text
+    client.post("/logout")
+
+    for suffix, status in (("", 200), ("/download", 403), ("/download?preview=true", 403)):
+        page = client.get(path + suffix)
+        assert page.status_code == status
+        assert "请输入分享密码" in page.text
+        assert "shared text" not in page.text
+        assert "example.bin" not in page.text
+        assert "下载文件" not in page.text
+        assert page.headers["cache-control"] == "no-store"
+    assert view_count(settings, message_id) == 0
+    wrong = client.post(path + "/unlock", data={"password": "wrong"})
+    assert wrong.status_code == 403
+    assert "密码错误" in wrong.text
+    assert view_count(settings, message_id) == 0
+
+    unlocked = client.post(path + "/unlock", data={"password": "share-secret"}, follow_redirects=False)
+    assert unlocked.status_code == 303
+    assert unlocked.headers["location"] == path
+    cookie = unlocked.headers["set-cookie"]
+    assert "HttpOnly" in cookie
+    assert "Max-Age=3600" in cookie
+    assert f"Path={path}" in cookie
+    assert "SameSite=lax" in cookie
+    assert view_count(settings, message_id) == 0
+    page = client.get(path)
+    assert page.status_code == 200
+    assert "请输入分享密码" not in page.text
+    assert view_count(settings, message_id) == 1
+    if kind == "text":
+        assert "shared text" in page.text
+    else:
+        assert client.get(path + "/download").content == b"shared file"
+        assert client.get(path + "/download?preview=true").content == b"shared file"
+        assert view_count(settings, message_id) == 1
+
+
+def test_password_preserved_changed_and_cleared_without_resetting_share(client, settings):
+    message_id = create_message(client, settings)
+    path = protected_share(client, message_id, max_views="5").json()["share_path"]
+    client.post("/logout")
+    assert client.post(path + "/unlock", data={"password": "share-secret"}).status_code == 200
+    assert view_count(settings, message_id) == 1
+    login(client)
+    with connect(settings.database_path) as conn:
+        old_hash = conn.execute("SELECT password_hash FROM message_shares").fetchone()[0]
+    assert protected_share(client, message_id, password="", max_views="6").json()["share_path"] == path
+    with connect(settings.database_path) as conn:
+        assert conn.execute("SELECT password_hash FROM message_shares").fetchone()[0] == old_hash
+    assert view_count(settings, message_id) == 1
+    assert protected_share(client, message_id, password="new-secret").json()["share_path"] == path
+    assert view_count(settings, message_id) == 1
+    assert "请输入分享密码" in client.get(path).text
+    assert client.post(path + "/unlock", data={"password": "share-secret"}).status_code == 403
+    assert client.post(path + "/unlock", data={"password": "new-secret"}).status_code == 200
+    assert view_count(settings, message_id) == 2
+    assert protected_share(client, message_id, password="", clear_password="true").json()["share_path"] == path
+    with connect(settings.database_path) as conn:
+        assert conn.execute("SELECT password_hash FROM message_shares").fetchone()[0] is None
+    client.cookies.clear()
+    assert "shared text" in client.get(path).text
+
+
+def test_protected_final_view_can_download_but_cannot_reopen(client, settings):
+    message_id = create_message(client, settings, "file", mime_type="image/png")
+    path = protected_share(client, message_id, max_views="1").json()["share_path"]
+    client.post("/logout")
+    page = client.post(path + "/unlock", data={"password": "share-secret"})
+    assert page.status_code == 200
+    download = download_link(page)
+    assert client.get(path).status_code == 410
+    assert client.get(download).content == b"shared file"
+    assert client.get(download + "&preview=true").content == b"shared file"
+    assert view_count(settings, message_id) == 1
+    client.cookies.clear()
+    assert client.get(download).status_code == 403
+
+
+def test_adding_password_blocks_previously_issued_download_access(client, settings):
+    message_id = create_message(client, settings, "file", mime_type="text/plain")
+    path = limited_share(client, message_id, "5").json()["share_path"]
+    download = download_link(client.get(path))
+    assert client.get(download).status_code == 200
+    protected_share(client, message_id)
+    blocked = client.get(download)
+    assert blocked.status_code == 403
+    assert "请输入分享密码" in blocked.text
+    assert view_count(settings, message_id) == 1
+
+
+@pytest.mark.parametrize("attack", ["forged", "expired", "other_share"])
+def test_password_access_rejects_invalid_cookies(client, settings, monkeypatch, attack):
+    message_id = create_message(client, settings, "file", mime_type="text/plain")
+    path = protected_share(client, message_id).json()["share_path"]
+    other_path = None
+    if attack == "other_share":
+        client.post("/messages", data={"content": "another protected message"})
+        with connect(settings.database_path) as conn:
+            other_id = conn.execute("SELECT max(id) FROM messages").fetchone()[0]
+        other_path = protected_share(client, other_id).json()["share_path"]
+    client.post("/logout")
+    with monkeypatch.context() as patch:
+        if attack == "expired":
+            patch.setattr(TimestampSigner, "get_timestamp", lambda self: int(time.time()) - 3601)
+        client.post((other_path or path) + "/unlock", data={"password": "share-secret"}, follow_redirects=False)
+    cookie = client.cookies.get("share_access") if attack != "forged" else "forged"
+    client.cookies.clear()
+    client.cookies.set("share_access", cookie, path=path)
+    assert "请输入分享密码" in client.get(path).text
+    assert client.get(path + "/download").status_code == 403
+    assert view_count(settings, message_id) == 0
+
+
+def test_other_user_cannot_set_or_clear_share_password(client, settings):
+    message_id = create_message(client, settings)
+    path = protected_share(client, message_id).json()["share_path"]
+    client.post("/logout")
+    anonymous = client.post(f"/messages/{message_id}/share", data={"password": "hacked"}, follow_redirects=False)
+    assert anonymous.status_code == 303
+    assert anonymous.headers["location"] == "/login"
+    register(client, username="bob")
+    login(client, username="bob")
+    assert protected_share(client, message_id, password="hacked").status_code == 404
+    assert protected_share(client, message_id, password="", clear_password="true").status_code == 404
+    assert client.post(path + "/unlock", data={"password": "share-secret"}).status_code == 200
+
+
+@pytest.mark.parametrize("data", [{"password": "x" * 129}, {"password": "new", "clear_password": "true"}])
+def test_invalid_password_settings_do_not_change_share(client, settings, data):
+    message_id = create_message(client, settings)
+    path = protected_share(client, message_id).json()["share_path"]
+    response = client.post(f"/messages/{message_id}/share", data={**data, "max_views": "1"})
+    assert response.status_code == 400
+    with connect(settings.database_path) as conn:
+        row = conn.execute("SELECT * FROM message_shares").fetchone()
+        assert verify_password("share-secret", row["password_hash"])
+        assert row["max_views"] is None
+    assert client.post(path + "/unlock", data={"password": "share-secret"}).status_code == 200
+
+
+@pytest.mark.parametrize("invalidate", ["delete", "expire", "revoke"])
+def test_unlocked_share_still_checks_resource_validity(client, settings, invalidate):
+    message_id = create_message(client, settings, "file", mime_type="text/plain")
+    path = protected_share(client, message_id).json()["share_path"]
+    page = client.post(path + "/unlock", data={"password": "share-secret"})
+    download = download_link(page)
+    if invalidate == "delete":
+        client.post(f"/messages/{message_id}/delete")
+    elif invalidate == "revoke":
+        client.post(f"/messages/{message_id}/share/revoke")
+    else:
+        with connect(settings.database_path) as conn:
+            conn.execute("UPDATE messages SET expires_at = ? WHERE id = ?", (
+                (datetime.now(timezone.utc) - timedelta(seconds=1)).isoformat(), message_id,
+            ))
+    assert_unavailable(client.get(path))
+    assert_unavailable(client.get(download))
+    assert_unavailable(client.post(path + "/unlock", data={"password": "share-secret"}))

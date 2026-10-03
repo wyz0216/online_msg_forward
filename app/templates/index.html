@@ -112,6 +112,8 @@
         <form method="post" action="/messages/{{ message['id'] }}/share" class="share-limit-form" data-share-form>
           <label for="share-limit-{{ message['id'] }}">最多打开次数</label>
           <input id="share-limit-{{ message['id'] }}" name="max_views" type="number" min="1" max="2147483647" step="1" placeholder="不限" aria-label="最多打开次数，留空不限">
+          <label for="share-password-{{ message['id'] }}">分享密码</label>
+          <input id="share-password-{{ message['id'] }}" name="password" type="password" class="share-password-input" maxlength="128" placeholder="留空无需密码" autocomplete="new-password">
           <button type="submit" class="secondary">分享</button>
         </form>
         {% endif %}
@@ -129,15 +131,21 @@
       </div>
       {% if message["share_token"] %}
       <div class="share-controls">
-        <label for="share-link-{{ message['id'] }}">分享链接 · 持有链接的人无需登录即可查看、下载</label>
+        <label for="share-link-{{ message['id'] }}">分享链接 · 无需登录{% if message["share_has_password"] %}，需输入分享密码{% else %}即可查看、下载{% endif %}</label>
         <input id="share-link-{{ message['id'] }}" type="url" value="{{ request.url_for('share_page', token=message['share_token']) }}" readonly>
         <p class="field-hint">已打开 {{ message["share_view_count"] }} 次 · {% if message["share_max_views"] is not none %}上限 {{ message["share_max_views"] }} 次 · 剩余 {{ [0, message["share_max_views"] - message["share_view_count"]] | max }} 次{% else %}次数不限{% endif %}</p>
         <form method="post" action="/messages/{{ message['id'] }}/share" class="share-limit-form" data-share-form data-share-settings>
           <label for="share-limit-{{ message['id'] }}">最多打开次数</label>
           <input id="share-limit-{{ message['id'] }}" name="max_views" type="number" min="1" max="2147483647" step="1" value="{{ message['share_max_views'] if message['share_max_views'] is not none else '' }}" placeholder="不限" aria-label="最多打开次数，留空不限">
-          <button type="submit" class="secondary">保存限制</button>
+          <label for="share-password-{{ message['id'] }}">{% if message["share_has_password"] %}修改密码{% else %}分享密码{% endif %}</label>
+          <input id="share-password-{{ message['id'] }}" name="password" type="password" class="share-password-input" maxlength="128" placeholder="{% if message['share_has_password'] %}留空保留原密码{% else %}留空无需密码{% endif %}" autocomplete="new-password">
+          {% if message["share_has_password"] %}
+          <label class="share-clear-password"><input name="clear_password" type="checkbox" value="true">取消密码</label>
+          {% endif %}
+          <button type="submit" class="secondary">保存设置</button>
         </form>
         <p class="field-hint">留空不限；每次打开或刷新分享页计 1 次，预览、下载不额外计次。修改上限保留已用次数。</p>
+        <p class="field-hint">{% if message["share_has_password"] %}已设置密码，请将密码告知接收方。修改或取消密码后点击“保存设置”；修改密码会让之前的验证失效。{% else %}未设置密码；填写密码后点击“保存设置”即可保护分享。{% endif %}</p>
         <div class="actions">
           <button type="button" class="secondary" data-copy-text="{{ request.url_for('share_page', token=message['share_token']) }}">复制链接</button>
           <form method="post" action="/messages/{{ message['id'] }}/share/revoke" data-share-form data-share-revoke>

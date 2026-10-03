@@ -67,7 +67,8 @@ def list_user_messages(settings: Settings, user_id: int, page: int = 1, query: s
             f"""
             SELECT *, (SELECT token FROM message_shares WHERE message_id = messages.id) AS share_token,
                 (SELECT max_views FROM message_shares WHERE message_id = messages.id) AS share_max_views,
-                (SELECT view_count FROM message_shares WHERE message_id = messages.id) AS share_view_count
+                (SELECT view_count FROM message_shares WHERE message_id = messages.id) AS share_view_count,
+                (SELECT password_hash IS NOT NULL FROM message_shares WHERE message_id = messages.id) AS share_has_password
             FROM messages
             WHERE {where}
             ORDER BY created_at DESC, id DESC

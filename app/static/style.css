@@ -611,6 +611,23 @@ small,
   margin-bottom: 10px;
 }
 
+.share-limit-form .share-password-input {
+  width: 160px;
+  max-width: 100%;
+}
+
+.share-limit-form .share-clear-password {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.share-limit-form input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+}
+
 .shared-message {
   max-width: 800px;
 }

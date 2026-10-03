@@ -258,16 +258,16 @@ async function changeShare(shareForm) {
     const response = await fetch(shareForm.action, {method: "POST", body: new FormData(shareForm), headers: {Accept: "application/json"}});
     if (new URL(response.url).pathname === "/login") throw new Error("登录已过期，请重新登录。");
     if (!response.ok) {
-      if (response.status === 400) throw new Error("打开次数请填写正整数，或留空不限。");
+      if (response.status === 400) throw new Error("请检查分享设置：次数需为正整数，密码最多 128 字，修改密码与取消密码不能同时选择。");
       throw new Error("分享操作失败，请刷新消息列表后重试。");
     }
     const result = await response.json();
     if (shareForm.hasAttribute("data-share-settings")) {
-      notify("打开次数限制已保存，已用次数保留。");
+      notify("分享设置已保存，链接和已用次数保留。");
     } else if (result.share_path) {
       try {
         await copyText(new URL(result.share_path, window.location.origin).href);
-        notify("分享链接已复制，对方无需登录即可查看。");
+        notify(shareForm.elements.password?.value ? "分享链接已复制，请将分享密码告知对方。" : "分享链接已复制，对方无需登录即可查看。");
       } catch {
         notify("分享已开启，请在消息下方选中链接手动复制。");
       }
