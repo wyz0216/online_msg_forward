@@ -27,6 +27,17 @@ def share(client, message_id):
     return client.post(f"/messages/{message_id}/share", headers={"Accept": "application/json"})
 
 
+def assert_unavailable(response):
+    assert response.status_code == 404
+    assert response.headers["content-type"].startswith("text/html")
+    assert response.headers["cache-control"] == "no-store"
+    assert response.headers["referrer-policy"] == "no-referrer"
+    assert "分享已失效" in response.text
+    assert "请联系分享者" in response.text
+    assert "下载文件" not in response.text
+    assert "shared text" not in response.text
+
+
 @pytest.mark.parametrize("kind,mime_type", [("text", None), ("file", "application/octet-stream"), ("image", "image/png")])
 def test_shared_message_is_accessible_without_login(client, settings, kind, mime_type):
     message_id = create_message(client, settings, kind, mime_type=mime_type)
@@ -79,8 +90,8 @@ def test_revocation_invalidates_link_and_resharing_generates_new_link(client, se
     old_path = share(client, message_id).json()["share_path"]
     response = client.post(f"/messages/{message_id}/share/revoke", headers={"Accept": "application/json"})
     assert response.json() == {"shared": False}
-    assert client.get(old_path).status_code == 404
-    assert client.get(old_path + "/download").status_code == 404
+    assert_unavailable(client.get(old_path))
+    assert_unavailable(client.get(old_path + "/download"))
     new_path = share(client, message_id).json()["share_path"]
     assert old_path != new_path
     assert client.get(new_path).status_code == 200
@@ -98,16 +109,34 @@ def test_deleted_or_expired_message_invalidates_share(client, settings, invalida
                 (datetime.now(timezone.utc) - timedelta(seconds=1)).isoformat(), message_id,
             ))
     client.post("/logout")
-    assert client.get(path).status_code == 404
-    assert client.get(path + "/download").status_code == 404
+    assert_unavailable(client.get(path))
+    assert_unavailable(client.get(path + "/download"))
     with connect(settings.database_path) as conn:
         assert conn.execute("SELECT count(*) FROM message_shares").fetchone()[0] == 0
     assert list(settings.upload_dir.iterdir()) == []
 
 
 def test_unknown_share_is_not_accessible(client):
-    assert client.get("/s/unknown").status_code == 404
-    assert client.get("/s/unknown/download").status_code == 404
+    assert_unavailable(client.get("/s/unknown"))
+    assert_unavailable(client.get("/s/unknown/download"))
+
+
+@pytest.mark.parametrize("mime_type", ["text/plain", "image/png"])
+@pytest.mark.parametrize("invalidate", ["delete_file", "missing_filename"])
+def test_missing_shared_file_shows_unavailable_without_consuming_views(client, settings, mime_type, invalidate):
+    message_id = create_message(client, settings, "file", mime_type=mime_type)
+    path = limited_share(client, message_id, "1").json()["share_path"]
+    with connect(settings.database_path) as conn:
+        filename = conn.execute("SELECT stored_filename FROM messages WHERE id = ?", (message_id,)).fetchone()[0]
+        if invalidate == "missing_filename":
+            conn.execute("UPDATE messages SET stored_filename = NULL WHERE id = ?", (message_id,))
+    if invalidate == "delete_file":
+        (settings.upload_dir / filename).unlink()
+    client.post("/logout")
+
+    for suffix in ("", "/download", "/download?preview=true"):
+        assert_unavailable(client.get(path + suffix))
+    assert view_count(settings, message_id) == 0
 
 
 def test_shared_text_is_escaped(client, settings):

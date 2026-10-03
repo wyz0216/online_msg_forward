@@ -19,6 +19,19 @@ def access_signer(request: Request):
     return URLSafeTimedSerializer(request.app.state.settings.secret_key, salt="share-download-access")
 
 
+def share_unavailable(
+    request: Request,
+    status_code: int = 404,
+    title: str = "分享已失效",
+    description: str = "链接不存在，或资源已删除、过期、取消分享。请联系分享者确认并重新分享。",
+):
+    return request.app.state.templates.TemplateResponse(
+        request, "share_unavailable.html",
+        {"title": title, "description": description},
+        status_code=status_code, headers=SHARE_HEADERS,
+    )
+
+
 @router.post("/messages/{message_id}/share")
 async def create_share(request: Request, message_id: int, max_views: str = Form("")):
     user = require_user(request)
@@ -70,14 +83,17 @@ def shared_message(request: Request, token: str):
             "WHERE message_shares.token = ?",
             (token,),
         ).fetchone()
-    if message is None:
-        raise HTTPException(status_code=404, detail="Share not found or expired", headers=SHARE_HEADERS)
+    if message is not None and message["kind"] != "text":
+        if not message["stored_filename"] or not (settings.upload_dir / message["stored_filename"]).is_file():
+            return None
     return message
 
 
 @router.get("/s/{token}", name="share_page")
 def share_page(request: Request, token: str):
     message = shared_message(request, token)
+    if message is None:
+        return share_unavailable(request)
     # SQLite serializes writes; only one request can take the final available view.
     with connect(request.app.state.settings.database_path) as conn:
         opened = conn.execute(
@@ -86,8 +102,9 @@ def share_page(request: Request, token: str):
             (token,),
         ).rowcount
     if not opened:
-        return request.app.state.templates.TemplateResponse(
-            request, "share_unavailable.html", status_code=410, headers=SHARE_HEADERS,
+        return share_unavailable(
+            request, status_code=410, title="分享次数已用完",
+            description="该链接已达到最大打开次数，请联系分享者调整限制。",
         )
     access = access_signer(request).dumps(token) if message["max_views"] is not None else None
     download_url = f"/s/{token}/download" + (f"?access={access}" if access else "")
@@ -107,6 +124,8 @@ def share_page(request: Request, token: str):
 @router.get("/s/{token}/download")
 def download_share(request: Request, token: str, preview: bool = False, access: str = ""):
     message = shared_message(request, token)
+    if message is None:
+        return share_unavailable(request)
     if message["max_views"] is not None:
         try:
             valid_access = access_signer(request).loads(access, max_age=DOWNLOAD_ACCESS_SECONDS)
@@ -115,10 +134,10 @@ def download_share(request: Request, token: str, preview: bool = False, access: 
         if valid_access != token:
             raise HTTPException(status_code=403, detail="Invalid download access", headers=SHARE_HEADERS)
     if not message["stored_filename"]:
-        raise HTTPException(status_code=404, detail="File not found", headers=SHARE_HEADERS)
+        return share_unavailable(request, title="文件不可用", description="该分享没有可下载的文件，请联系分享者确认。")
     path = request.app.state.settings.upload_dir / message["stored_filename"]
     if not path.is_file():
-        raise HTTPException(status_code=404, detail="File not found", headers=SHARE_HEADERS)
+        return share_unavailable(request)
     return FileResponse(
         path,
         media_type=message["mime_type"] or "application/octet-stream",

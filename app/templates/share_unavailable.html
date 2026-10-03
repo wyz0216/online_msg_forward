@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% block title %}分享次数已用完{% endblock %}
+{% block title %}{{ title }}{% endblock %}
 {% block body %}
 <section class="panel shared-message">
-  <h1>分享次数已用完</h1>
-  <p class="muted">该链接已达到最大打开次数，请联系分享者调整限制。</p>
+  <h1>{{ title }}</h1>
+  <p class="muted">{{ description }}</p>
 </section>
 {% endblock %}
