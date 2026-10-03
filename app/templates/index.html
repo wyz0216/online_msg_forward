@@ -25,7 +25,7 @@
   </div>
   <form method="post" action="/messages" enctype="multipart/form-data" id="composer-form" data-max-upload-bytes="{{ max_upload_bytes }}">
     <label for="message-content">文本内容</label>
-    <textarea id="message-content" name="content" rows="6" placeholder="记录灵感、粘贴链接，或写下一段文字…" aria-describedby="composer-hint"></textarea>
+    <textarea id="message-content" name="content" rows="5" placeholder="记录灵感、粘贴链接，或写下一段文字…" aria-describedby="composer-hint"></textarea>
     <p class="field-hint" id="composer-hint">支持 Ctrl / ⌘ + Enter 发送</p>
     <div class="composer-grid">
       <div class="upload-zone" data-drop-zone>
@@ -57,7 +57,7 @@
 
 <section class="panel messages-panel" id="message-results" aria-label="消息列表">
   <div class="section-heading">
-    <div>
+    <div class="messages-heading">
       <h2>消息列表</h2>
       <p class="muted" data-message-count aria-live="polite">共 {{ total }} 条{% if query or kind != 'all' %}匹配消息{% else %}消息{% endif %} · 最新在前</p>
     </div>
@@ -115,15 +115,17 @@
           <button type="submit" class="secondary">分享</button>
         </form>
         {% endif %}
-        {% if message["kind"] == "text" %}
-        <button type="button" class="secondary" data-copy-text="{{ message['content'] }}">复制</button>
-        {% endif %}
-        {% if message["stored_filename"] %}
-        <a href="/messages/{{ message['id'] }}/download" role="button" class="secondary outline download-button">下载</a>
-        {% endif %}
-        <form method="post" action="/messages/{{ message['id'] }}/delete" data-delete-form>
-          <button type="submit" class="danger">删除</button>
-        </form>
+        <div class="message-quick-actions">
+          {% if message["kind"] == "text" %}
+          <button type="button" class="secondary" data-copy-text="{{ message['content'] }}">复制</button>
+          {% endif %}
+          {% if message["stored_filename"] %}
+          <a href="/messages/{{ message['id'] }}/download" role="button" class="secondary outline download-button">下载</a>
+          {% endif %}
+          <form method="post" action="/messages/{{ message['id'] }}/delete" data-delete-form>
+            <button type="submit" class="danger">删除</button>
+          </form>
+        </div>
       </div>
       {% if message["share_token"] %}
       <div class="share-controls">

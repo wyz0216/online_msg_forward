@@ -51,8 +51,8 @@ button.danger:hover {
 
 .page-shell {
   margin: 0 auto;
-  max-width: 1200px;
-  padding: 40px 24px 56px;
+  max-width: 1440px;
+  padding: 32px 32px 48px;
 }
 
 .topbar {
@@ -60,7 +60,7 @@ button.danger:hover {
   display: flex;
   gap: 16px;
   justify-content: space-between;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 
 .topbar h1,
@@ -102,9 +102,9 @@ button.danger:hover {
 
 .workspace-grid {
   display: grid;
-  grid-template-columns: 340px minmax(0, 1fr);
+  grid-template-columns: 360px minmax(0, 1fr);
   align-items: start;
-  gap: 24px;
+  gap: 20px;
 }
 
 .top-actions,
@@ -119,6 +119,12 @@ button.danger:hover {
   margin: 0;
 }
 
+.top-actions button {
+  margin: 0;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+}
+
 .muted,
 small,
 .empty {
@@ -128,7 +134,7 @@ small,
 .panel {
   background: var(--app-surface);
   border: 1px solid var(--app-border);
-  border-radius: 16px;
+  border-radius: 14px;
   box-shadow: 0 4px 20px rgba(38, 55, 77, 0.03);
   padding: 24px;
   min-width: 0;
@@ -152,7 +158,7 @@ small,
 }
 
 .composer-panel textarea {
-  min-height: 176px;
+  min-height: 152px;
   resize: vertical;
   margin-bottom: 8px;
   font-size: 0.9rem;
@@ -161,7 +167,7 @@ small,
 .composer-grid {
   align-items: end;
   display: grid;
-  gap: 14px;
+  gap: 12px;
   grid-template-columns: 1fr;
   margin-top: 14px;
 }
@@ -270,7 +276,20 @@ small,
 
 
 .message-toolbar {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+}
+
+.messages-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  width: 100%;
+}
+
+.messages-heading p {
+  margin-top: 0;
 }
 
 .search-label {
@@ -285,13 +304,17 @@ small,
 
 .search-row {
   display: flex;
-  align-items: start;
+  align-items: center;
   gap: 8px;
+  margin-bottom: 12px;
 }
 
 .search-row input {
   min-width: 0;
   flex: 1;
+  height: 42px;
+  margin: 0;
+  border-radius: 8px;
 }
 
 .search-row button {
@@ -299,6 +322,9 @@ small,
   width: auto;
   font-size: 0.9rem;
   padding-inline: 16px;
+  height: 42px;
+  padding-block: 0;
+  margin: 0;
 }
 
 .pagination {
@@ -324,7 +350,8 @@ small,
 .filter-bar {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 4px;
+  margin: 0;
 }
 
 .filter-bar[role="group"] {
@@ -373,8 +400,9 @@ small,
   border: 1px solid #dde7f0;
   border-radius: 9px;
   display: grid;
-  gap: 14px;
-  grid-template-columns: 1fr;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr);
+  margin: 0;
   padding: 16px;
 }
 
@@ -441,6 +469,15 @@ small,
   background: #f7f9f8;
 }
 
+.message-list .text-message,
+.message-list .file-name {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  margin-top: 10px;
+  padding: 0;
+}
+
 
 .image-preview-button {
   background: transparent;
@@ -494,8 +531,17 @@ small,
 
 .message-actions {
   border-top: 1px solid #e0e8f0;
-  margin-top: 2px;
-  padding-top: 12px;
+  margin-top: 0;
+  padding-top: 10px;
+  justify-content: space-between;
+  gap: 10px 16px;
+}
+
+.message-quick-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
 }
 
 .actions button,
@@ -503,6 +549,8 @@ small,
   padding: 8px 11px;
   font-size: 0.8rem;
   margin-bottom: 0;
+  width: auto;
+  min-height: 36px;
 }
 
 .download-button {
@@ -512,6 +560,14 @@ small,
 .share-controls label {
   color: var(--app-muted);
   font-size: 0.8rem;
+}
+
+.share-controls {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid #d4e5dd;
+  border-radius: 8px;
+  background: #f7faf8;
 }
 
 .share-controls input {
@@ -524,15 +580,19 @@ small,
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+  min-width: 0;
+  margin: 0 0 10px;
 }
 
 .share-limit-form label {
   font-size: 0.8rem;
   margin: 0;
+  white-space: nowrap;
 }
 
 .share-limit-form input {
-  width: 110px;
+  width: 76px;
+  height: 36px;
   margin: 0;
   padding: 6px 8px;
   font-size: 0.8rem;
@@ -542,6 +602,9 @@ small,
   margin: 0;
   padding: 8px 11px;
   font-size: 0.8rem;
+  width: auto;
+  min-height: 36px;
+  flex: 0 0 auto;
 }
 
 .share-controls .field-hint {
@@ -650,9 +713,9 @@ small,
 }
 
 
-@media (max-width: 960px) {
+@media (max-width: 1100px) {
   .workspace-grid {
-    grid-template-columns: 290px minmax(0, 1fr);
+    grid-template-columns: 300px minmax(0, 1fr);
     gap: 16px;
   }
 
@@ -662,7 +725,7 @@ small,
 
 }
 
-@media (max-width: 720px) {
+@media (max-width: 900px) {
   .workspace-grid {
     grid-template-columns: 1fr;
   }
@@ -670,6 +733,27 @@ small,
   .composer-panel {
     position: static;
   }
+
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+  .composer-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .upload-zone {
+    grid-row: span 2;
+    align-self: stretch;
+  }
+}
+
+@media (min-width: 901px) and (max-height: 760px) {
+  .composer-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 600px) {
 
   .composer-panel textarea {
     min-height: 120px;
@@ -721,5 +805,21 @@ small,
 
   .actions {
     justify-content: flex-start;
+  }
+
+  .message-item {
+    padding: 12px;
+  }
+
+  .message-actions > .share-limit-form {
+    flex: 1 1 100%;
+  }
+
+  .message-quick-actions {
+    margin-left: 0;
+  }
+
+  .share-controls {
+    padding: 10px;
   }
 }
