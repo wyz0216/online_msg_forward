@@ -9,11 +9,14 @@
   --pico-primary: #276457;
   --pico-primary-hover: #1e5146;
   --pico-primary-focus: rgba(39, 100, 87, 0.2);
-  --pico-secondary-background: #eef3f8;
-  --pico-secondary-border: #d5dee8;
-  --pico-secondary-inverse: #23384d;
-  --pico-secondary-hover-background: #e0e9f1;
-  --pico-secondary-hover-border: #c5d2df;
+  --pico-secondary: #38564c;
+  --pico-secondary-hover: #1e5146;
+  --pico-secondary-background: #ffffff;
+  --pico-secondary-border: #d6e2dc;
+  --pico-secondary-inverse: #38564c;
+  --pico-secondary-hover-background: #edf5f0;
+  --pico-secondary-hover-border: #b8cfc2;
+  --pico-secondary-focus: rgba(39, 100, 87, 0.16);
   --app-bg: #f5f7f6;
   --app-border: #d7e0ea;
   --app-muted: #60758a;
@@ -25,28 +28,51 @@ body {
   min-height: 100vh;
 }
 
-button,
-[role="button"] {
-  border-radius: 7px;
+:is(button, [role="button"]) {
+  border-radius: 10px;
+  font-weight: 600;
   white-space: nowrap;
+  transition: background-color 160ms ease, border-color 160ms ease,
+    color 160ms ease, box-shadow 160ms ease;
 }
 
-button.secondary,
-[role="button"].secondary {
-  --pico-background-color: #eef3f8;
-  --pico-border-color: #d5dee8;
-  --pico-color: #23384d;
+:is(button, [role="button"]).secondary.outline {
+  --pico-border-color: var(--pico-secondary-border);
+}
+
+:is(button, [role="button"]).secondary.outline:is(:hover, :active, :focus) {
+  --pico-background-color: var(--pico-secondary-hover-background);
+  --pico-border-color: var(--pico-secondary-hover-border);
+}
+
+:is(button, [role="button"]):focus-visible {
+  outline: 2px solid var(--pico-primary);
+  outline-offset: 3px;
+}
+
+:is(button, [role="button"]):not(.image-preview-button, [rel="prev"]):active {
+  box-shadow: inset 0 2px 4px rgba(21, 54, 43, 0.12);
+}
+
+:is(button, [role="button"])[disabled] {
+  box-shadow: none;
+  opacity: 0.45;
 }
 
 button.danger {
-  --pico-background-color: transparent;
-  --pico-border-color: transparent;
+  --pico-background-color: #fff8f7;
+  --pico-border-color: #f0dcd8;
   --pico-color: #a33630;
 }
 
-button.danger:hover {
-  --pico-background-color: #fff0ee;
-  --pico-border-color: #f3cfca;
+button.danger:is(:hover, :active, :focus) {
+  --pico-background-color: #ffebe7;
+  --pico-border-color: #e5b9b1;
+  --pico-color: #902d27;
+}
+
+button.danger:focus-visible {
+  outline-color: #a33630;
 }
 
 .page-shell {
@@ -188,6 +214,13 @@ small,
   width: 100%;
 }
 
+.composer-panel input[type="file"]::file-selector-button {
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
 .composer-panel select {
   margin: 8px 0 0;
   font-size: 0.9rem;
@@ -242,7 +275,7 @@ small,
 
 .compact {
   font-size: 0.75rem;
-  padding: 4px 10px;
+  padding: 6px 10px;
 }
 
 .send-button {
@@ -250,6 +283,20 @@ small,
   justify-content: space-between;
   align-items: center;
   margin: 4px 0 0;
+  min-height: 46px;
+  padding: 11px 16px;
+  font-size: 0.9rem;
+  --pico-button-box-shadow: 0 2px 5px rgba(39, 100, 87, 0.16);
+  --pico-button-hover-box-shadow: 0 4px 10px rgba(39, 100, 87, 0.22);
+}
+
+.send-button span {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .form-status {
@@ -350,8 +397,14 @@ small,
 .filter-bar {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 3px;
   margin: 0;
+  padding: 4px;
+  width: fit-content;
+  max-width: 100%;
+  background: #f1f5f3;
+  border: 1px solid #e2e9e5;
+  border-radius: 11px;
 }
 
 .filter-bar[role="group"] {
@@ -363,6 +416,7 @@ small,
   width: auto;
   border-radius: 8px;
   margin: 0;
+  box-shadow: none;
 }
 
 .filter-button {
@@ -370,20 +424,26 @@ small,
   border: 1px solid transparent;
   color: var(--app-muted);
   font-size: 0.8rem;
-  padding: 6px 14px;
+  padding: 7px 16px;
   margin: 0;
   border-radius: 8px;
 }
 
-.filter-button:hover {
-  background: #f1f5f3;
+.filter-button:is(:hover, :focus) {
+  background: #e5eee8;
+  color: #276457;
 }
 
 .filter-button[aria-pressed="true"] {
-  background: #e7f1ed;
-  border-color: #d4e5dd;
+  background: #ffffff;
+  border-color: #d9e5de;
   color: #276457;
   font-weight: 600;
+  box-shadow: 0 1px 3px rgba(31, 61, 48, 0.08);
+}
+
+.filter-bar[role="group"] button[aria-pressed="true"] {
+  box-shadow: 0 1px 3px rgba(31, 61, 48, 0.08);
 }
 
 
@@ -546,7 +606,7 @@ small,
 
 .actions button,
 .actions [role="button"] {
-  padding: 8px 11px;
+  padding: 7px 13px;
   font-size: 0.8rem;
   margin-bottom: 0;
   width: auto;
@@ -600,7 +660,7 @@ small,
 
 .share-limit-form button {
   margin: 0;
-  padding: 8px 11px;
+  padding: 7px 13px;
   font-size: 0.8rem;
   width: auto;
   min-height: 36px;
@@ -703,6 +763,10 @@ small,
 
 .auth-panel button {
   width: 100%;
+  min-height: 46px;
+  font-size: 0.9rem;
+  --pico-button-box-shadow: 0 2px 5px rgba(39, 100, 87, 0.16);
+  --pico-button-hover-box-shadow: 0 4px 10px rgba(39, 100, 87, 0.22);
 }
 
 .toast {
@@ -727,6 +791,14 @@ small,
 
 [hidden] {
   display: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button,
+  [role="button"],
+  input[type="file"]::file-selector-button {
+    transition: none;
+  }
 }
 
 
